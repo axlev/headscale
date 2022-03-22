@@ -2,11 +2,8 @@ name: Build-Alex
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - "*" # triggers only if push new tag version
   workflow_dispatch:
 
 jobs:
