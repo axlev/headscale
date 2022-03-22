@@ -7,27 +7,43 @@ on:
   workflow_dispatch:
 
 jobs:
-  goreleaser:
-    runs-on: ubuntu-18.04 # due to CGO we need to user an older version
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-      - name: Set up Go
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v14.1
+        with:
+          files: |
+            go.*
+            **/*.go
+            integration_test/
+            config-example.yaml
+
+      - name: Setup Go
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-go@v2
         with:
-          go-version: 1.18.0
+          go-version: "1.18.0"
 
       - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
+          go version
           sudo apt update
-          sudo apt install -y gcc-aarch64-linux-gnu
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+          sudo apt install -y make
+
+      - name: Run build
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: make build
+
+      - uses: actions/upload-artifact@v2
+        if: steps.changed-files.outputs.any_changed == 'true'
         with:
-          distribution: goreleaser
-          version: latest
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: headscale-linux
+          path: headscale
