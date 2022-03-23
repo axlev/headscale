@@ -2,9 +2,6 @@
 name: release-alex
 
 on:
-  push:
-    tags:
-      - "*" # triggers only if push new tag version
   workflow_dispatch:
 
 jobs:
